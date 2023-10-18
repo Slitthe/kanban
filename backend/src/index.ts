@@ -1,9 +1,8 @@
 import dotenv from "dotenv";
 import express from "express";
 import bcrypt from "bcrypt";
-import {cleanup, createUser, getUser} from "./db/index.js";
+import {cleanup, createUser, getUser} from "./db";
 import jwt from "jsonwebtoken";
-import {authenticateToken} from "./middlewares/auth.js";
 dotenv.config();
 
 
@@ -12,11 +11,7 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-
-
-
-
-app.post("/register", async (req, res) => {
+app.post("/register", async (req: express.Request, res: express.Response) => {
     const {name, password} = req.body;
 
     if(!name || !password) {
@@ -44,7 +39,7 @@ app.post("/register", async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', async (req: express.Request, res: express.Response) => {
     const { name, password } = req.body;
     if(!name || !password) {
         return res.status(500).json({message: "Missing fields"});
@@ -60,21 +55,18 @@ app.post('/login', async (req, res) => {
         console.error('Error comparing passwords:', err);
         return false; // Handle the error appropriately
     });
-    console.log({password, userPass: user.password, match: passwordMatch});
 
     if(!passwordMatch) {
         return res.status(401).json({message: "Invalid credentials"});
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({token});
+    if(process.env.JWT_SECRET) {
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({token});
+    } else {
+        res.status(500).json({message: "Internal server error"});
+    }
 });
-
-app.get("/test", authenticateToken, (req, res) => {
-    console.log(req.headers.authorization)
-    console.log(req.user);
-    res.send("ok")
-})
 
 app.listen(port, () => {
     console.log(`Express started on port: ${port}`)
