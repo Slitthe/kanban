@@ -1,0 +1,13 @@
+type Query {
+  user: User
+}
+
+type Mutation {
+  deleteRecord(id: ID!): Boolean
+}
+
+type User {
+  id: ID
+  username: String
+  password: String
+}
