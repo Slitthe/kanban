@@ -3,15 +3,25 @@ import { GraphQLError } from "graphql/error";
 import bcrypt from "bcrypt";
 import {
   createBoard,
+  createColumn,
   createUser,
   deleteBoard,
+  deleteColumn,
   getBoard,
   getBoards,
+  getColumn,
+  getColumns,
   getUser,
   updateBoard,
+  updateColumn,
 } from "../db";
 import jwt from "jsonwebtoken";
 import { BoardDetails } from "../types/board";
+import {
+  ColumnDetails,
+  GetColumnsPayload,
+  UpdateColumnDetails,
+} from "../types/column";
 
 // interface Resolvers {
 //   query: {
@@ -31,6 +41,21 @@ import { BoardDetails } from "../types/board";
 // }
 
 const resolvers: any = {
+  Board: {
+    async columns(parent: BoardDetails & DbItem, _: {}, context: AuthContext) {
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      const { id: boardId } = parent;
+
+      try {
+        return await getColumns(context.user.userId, boardId);
+      } catch {
+        throw new GraphQLError("Failed to get columns");
+      }
+    },
+  },
   Query: {
     async boards(parent: {}, _: {}, context: AuthContext) {
       if (!context.isAuthenticated || !context.user?.userId) {
@@ -56,6 +81,36 @@ const resolvers: any = {
         throw new GraphQLError("Failed to fetch boards");
       }
     },
+    async columns(
+      parent: {},
+      getColumnsPayload: GetColumnsPayload,
+      context: AuthContext,
+    ) {
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      const { boardId } = getColumnsPayload;
+
+      try {
+        return await getColumns(context.user.userId, boardId);
+      } catch {
+        throw new GraphQLError("Failed to fetch columns");
+      }
+    },
+    async column(parent: {}, columnDetails: DbItem, context: AuthContext) {
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      const { id } = columnDetails;
+
+      try {
+        return await getColumn(context.user.userId, id);
+      } catch {
+        throw new GraphQLError("Failed to fetch column");
+      }
+    },
   },
   Mutation: {
     async createBoard(
@@ -72,6 +127,22 @@ const resolvers: any = {
         return await createBoard(name, context.user.userId);
       } catch {
         throw new Error("Failed to save board");
+      }
+    },
+    async createColumn(
+      parent: any,
+      columnDetails: ColumnDetails,
+      context: AuthContext,
+    ) {
+      const { name, boardId } = columnDetails;
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await createColumn(name, boardId, context.user.userId);
+      } catch {
+        throw new Error("Failed to save column");
       }
     },
     async updateBoard(
@@ -91,6 +162,24 @@ const resolvers: any = {
         throw new Error("Failed to update board");
       }
     },
+
+    async updateColumn(
+      parent: any,
+      boardDetails: UpdateColumnDetails,
+      context: AuthContext,
+    ) {
+      const { name, id } = boardDetails;
+
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await updateColumn(name, id, context.user.userId);
+      } catch {
+        throw new Error("Failed to update board");
+      }
+    },
     async deleteBoard(parent: any, boardDetails: DbItem, context: AuthContext) {
       const { id } = boardDetails;
 
@@ -102,6 +191,23 @@ const resolvers: any = {
         return await deleteBoard(id, context.user.userId);
       } catch {
         throw new Error("Failed to delete board");
+      }
+    },
+    async deleteColumn(
+      parent: any,
+      columnDetail: DbItem,
+      context: AuthContext,
+    ) {
+      const { id } = columnDetail;
+
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await deleteColumn(id, context.user.userId);
+      } catch {
+        throw new Error("Failed to delete column");
       }
     },
     async register(parent: any, user: User) {

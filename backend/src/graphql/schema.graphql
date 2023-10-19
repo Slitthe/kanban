@@ -1,16 +1,29 @@
 type Query {
   boards: [Board]
   board(id: ID!): Board
+  columns(boardId: ID!): [Column]
+  column(id: ID!): Column
 }
+
 
 type Mutation {
   register(username: String!, password: String!): RegisterResult
   login(username: String!, password: String!): Token
   createBoard(name: String!): Board
+  createColumn(name: String!, boardId: ID!): Column
+
   updateBoard(name: String!, id: ID!): Board
+  updateColumn(name: String!, id: ID!): Column
   deleteBoard(id: ID!): Board
+  deleteColumn(id: ID!): Column
+
 }
 
+type Column {
+  name: String!
+  id: ID!
+  boardId: ID!
+}
 type Token {
   token: String!
 }
@@ -23,6 +36,8 @@ type RegisterResult {
 type Board {
   name: String!
   id: ID!
+  columns: [Column]
+
 }
 
 
