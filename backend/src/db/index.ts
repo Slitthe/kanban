@@ -1,10 +1,10 @@
 import pg from "pg";
 import dotenv from "dotenv";
-import { DbItem } from "../types/user";
-import { BoardDetails } from "../types/board";
+import { BoardDetails, DbBoardDetails } from "../types/board";
 import { ColumnDetails, DbColumnDetails } from "../types/column";
 import { DbTaskDetails, TaskDetails } from "../types/task";
 import { DbSubtaskDetail, SubtaskDetail } from "../types/subtask";
+import { DbItem } from "../types/db";
 dotenv.config();
 
 const { Pool } = pg;
@@ -293,14 +293,15 @@ export async function getBoard(
   userId: number,
   boardId: number,
 ): Promise<BoardDetails & DbItem> {
-  const board = await pool.query<BoardDetails & DbItem>(
-    "SELECT name, id FROM boards WHERE user_id=$1 AND id=$2",
+  const board = await pool.query<DbBoardDetails & DbItem>(
+    "SELECT name, id, user_id FROM boards WHERE user_id=$1 AND id=$2",
     [userId, boardId],
   );
 
   return {
     id: board.rows[0].id,
     name: board.rows[0].name,
+    userId: board.rows[0].user_id,
   };
 }
 

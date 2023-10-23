@@ -41,6 +41,7 @@ type Column {
   name: String!
   id: ID!
   boardId: ID!
+  tasks: [Task]
 }
 
 type Task {
@@ -48,6 +49,7 @@ type Task {
   id: ID!
   columnId: ID!
   description: String
+  subtasks: [Subtask]
 }
 
 type Board {

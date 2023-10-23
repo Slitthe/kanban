@@ -15,7 +15,7 @@ import resolvers from "./graphql/resolvers";
 import * as fs from "fs";
 import path from "path";
 import jwt from "jsonwebtoken";
-import { AuthContext, TokenContent } from "./types/user";
+import { AuthContext, TokenContent } from "./types/auth";
 
 const app = express();
 const port = process.env.PORT || 3000;
