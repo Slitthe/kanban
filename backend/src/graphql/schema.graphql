@@ -3,6 +3,10 @@ type Query {
   board(id: ID!): Board
   columns(boardId: ID!): [Column]
   column(id: ID!): Column
+  tasks(columnId: ID!): [Task]
+  task(id: ID!): Task
+  subtasks(taskId: ID!): [Subtask]
+  subtask(id: ID!): Subtask
 }
 
 
@@ -11,12 +15,26 @@ type Mutation {
   login(username: String!, password: String!): Token
   createBoard(name: String!): Board
   createColumn(name: String!, boardId: ID!): Column
+  createTask(columnId: ID!, title: String!, description: String): Task
+  createSubtask(taskId: ID!, title: String!): Subtask
 
   updateBoard(name: String!, id: ID!): Board
   updateColumn(name: String!, id: ID!): Column
+  updateTask(title: String, description: String, id: ID!): Task
+  updateSubtask(id: ID!, title: String, isCompleted: Boolean): Subtask
+
   deleteBoard(id: ID!): Board
   deleteColumn(id: ID!): Column
+  deleteTask(id: ID!): Task
+  deleteSubtask(id: ID!): Subtask
 
+}
+
+type Subtask {
+  title: String!
+  isCompleted: Boolean
+  id: ID!
+  taskId: ID!
 }
 
 type Column {
@@ -24,6 +42,25 @@ type Column {
   id: ID!
   boardId: ID!
 }
+
+type Task {
+  title: String!
+  id: ID!
+  columnId: ID!
+  description: String
+}
+
+type Board {
+  name: String!
+  id: ID!
+  columns: [Column]
+}
+
+
+
+
+
+
 type Token {
   token: String!
 }
@@ -32,14 +69,6 @@ type RegisterResult {
   token: String!
   username: String!
 }
-
-type Board {
-  name: String!
-  id: ID!
-  columns: [Column]
-
-}
-
 
 type User {
   username: String

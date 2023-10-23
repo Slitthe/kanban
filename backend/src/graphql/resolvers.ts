@@ -4,16 +4,26 @@ import bcrypt from "bcrypt";
 import {
   createBoard,
   createColumn,
+  createSubtask,
+  createTask,
   createUser,
   deleteBoard,
   deleteColumn,
+  deleteSubtask,
+  deleteTask,
   getBoard,
   getBoards,
   getColumn,
   getColumns,
+  getSubtask,
+  getSubtasks,
+  getTask,
+  getTasks,
   getUser,
   updateBoard,
   updateColumn,
+  updateSubtask,
+  updateTask,
 } from "../db";
 import jwt from "jsonwebtoken";
 import { BoardDetails } from "../types/board";
@@ -22,6 +32,12 @@ import {
   GetColumnsPayload,
   UpdateColumnDetails,
 } from "../types/column";
+import { GetTasksPayload, TaskDetails, UpdateTaskPayload } from "../types/task";
+import {
+  GetSubtasksPayload,
+  SubtaskDetail,
+  UpdateSubtaskPayload,
+} from "../types/subtask";
 
 // interface Resolvers {
 //   query: {
@@ -98,6 +114,54 @@ const resolvers: any = {
         throw new GraphQLError("Failed to fetch columns");
       }
     },
+    async tasks(
+      parent: {},
+      getTasksPayload: GetTasksPayload,
+      context: AuthContext,
+    ) {
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      const { columnId } = getTasksPayload;
+
+      try {
+        return await getTasks(columnId, context.user.userId);
+      } catch {
+        throw new GraphQLError("Failed to fetch tasks");
+      }
+    },
+    async subtasks(
+      parent: {},
+      getTasksPayload: GetSubtasksPayload,
+      context: AuthContext,
+    ) {
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      const { taskId } = getTasksPayload;
+
+      try {
+        return await getSubtasks(taskId, context.user.userId);
+      } catch {
+        throw new GraphQLError("Failed to fetch subtasks");
+      }
+    },
+    async subtask(parent: {}, getSubtaskPayload: DbItem, context: AuthContext) {
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      const { id } = getSubtaskPayload;
+      console.log({ id });
+
+      try {
+        return await getSubtask(context.user?.userId, id);
+      } catch {
+        throw new GraphQLError("Failed to fetch subtask");
+      }
+    },
     async column(parent: {}, columnDetails: DbItem, context: AuthContext) {
       if (!context.isAuthenticated || !context.user?.userId) {
         throw new GraphQLError("Unauthorized");
@@ -109,6 +173,19 @@ const resolvers: any = {
         return await getColumn(context.user.userId, id);
       } catch {
         throw new GraphQLError("Failed to fetch column");
+      }
+    },
+    async task(parent: {}, taskDetail: DbItem, context: AuthContext) {
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      const { id } = taskDetail;
+
+      try {
+        return await getTask(context.user.userId, id);
+      } catch {
+        throw new GraphQLError("Failed to fetch task");
       }
     },
   },
@@ -142,9 +219,52 @@ const resolvers: any = {
       try {
         return await createColumn(name, boardId, context.user.userId);
       } catch {
+        throw new Error("Failed to save Task");
+      }
+    },
+    async createTask(
+      parent: any,
+      columnDetails: TaskDetails,
+      context: AuthContext,
+    ) {
+      const { title, columnId, description } = columnDetails;
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await createTask(
+          title,
+          columnId,
+          context.user.userId,
+          description,
+        );
+      } catch {
         throw new Error("Failed to save column");
       }
     },
+    async createSubtask(
+      parent: any,
+      subtaskDetails: SubtaskDetail,
+      context: AuthContext,
+    ) {
+      const { title, taskId, isCompleted } = subtaskDetails;
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await createSubtask(
+          title,
+          taskId,
+          context.user.userId,
+          isCompleted,
+        );
+      } catch {
+        throw new Error("Failed to save subtask");
+      }
+    },
+
     async updateBoard(
       parent: any,
       boardDetails: BoardDetails & DbItem,
@@ -180,6 +300,41 @@ const resolvers: any = {
         throw new Error("Failed to update board");
       }
     },
+    async updateTask(
+      parent: any,
+      taskDetails: UpdateTaskPayload,
+      context: AuthContext,
+    ) {
+      const { title, description, id } = taskDetails;
+      console.log({ taskDetails });
+
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await updateTask(id, context.user.userId, title, description);
+      } catch {
+        throw new Error("Failed to update task");
+      }
+    },
+    async updateSubtask(
+      parent: any,
+      subtaskDetails: UpdateSubtaskPayload,
+      context: AuthContext,
+    ) {
+      const { title, isCompleted, id } = subtaskDetails;
+
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await updateSubtask(id, context.user.userId, title, isCompleted);
+      } catch {
+        throw new Error("Failed to update subtask");
+      }
+    },
     async deleteBoard(parent: any, boardDetails: DbItem, context: AuthContext) {
       const { id } = boardDetails;
 
@@ -208,6 +363,36 @@ const resolvers: any = {
         return await deleteColumn(id, context.user.userId);
       } catch {
         throw new Error("Failed to delete column");
+      }
+    },
+    async deleteTask(parent: any, taskDetail: DbItem, context: AuthContext) {
+      const { id } = taskDetail;
+
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await deleteTask(id, context.user.userId);
+      } catch {
+        throw new Error("Failed to delete task");
+      }
+    },
+    async deleteSubtask(
+      parent: any,
+      subtaskDetail: DbItem,
+      context: AuthContext,
+    ) {
+      const { id } = subtaskDetail;
+
+      if (!context.isAuthenticated || !context.user?.userId) {
+        throw new GraphQLError("Unauthorized");
+      }
+
+      try {
+        return await deleteSubtask(id, context.user.userId);
+      } catch {
+        throw new Error("Failed to delete subtask");
       }
     },
     async register(parent: any, user: User) {
