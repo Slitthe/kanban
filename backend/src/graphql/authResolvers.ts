@@ -1,14 +1,22 @@
-import { User } from "../types/user";
+import { RegisterUserPayload, User } from "../types/user";
 import { GraphQLError } from "graphql/error";
 import bcrypt from "bcrypt";
 import { createUser, getUser } from "../db";
 import jwt from "jsonwebtoken";
 
-export async function registerResolver(parent: any, user: User) {
-  const { username, password } = user;
+export async function registerResolver(parent: any, user: RegisterUserPayload) {
+  const { username, password, confirmedPassword } = user;
 
-  if (!username || !password) {
+  if (!username || !password || !confirmedPassword) {
     throw new GraphQLError("Missing fields");
+  }
+
+  if (password !== confirmedPassword) {
+    throw new GraphQLError("Passwords do not match");
+  }
+
+  if (password.length < 6) {
+    throw new GraphQLError("Password is too short");
   }
 
   let hashedPassword;

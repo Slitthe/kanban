@@ -11,6 +11,7 @@ export interface DbSubtaskDetail {
   title: string;
   task_id: number;
   is_completed: string;
+  user_id: number;
 }
 export interface UpdateSubtaskPayload {
   isCompleted?: boolean;

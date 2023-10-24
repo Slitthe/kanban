@@ -56,7 +56,6 @@ export async function createColumnResolver(
   columnDetails: ColumnDetails,
   context: AuthContext,
 ) {
-  console.log({ columnDetails });
   const { name, boardId } = columnDetails;
   if (!context.isAuthenticated || !context.user?.userId) {
     throw new GraphQLError("Unauthorized");

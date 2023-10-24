@@ -35,6 +35,7 @@ export async function createColumn(
     name: createdColumn.rows[0].name,
     boardId: createdColumn.rows[0].board_id,
     id: createdColumn.rows[0].id,
+    userId: createdColumn.rows[0].user_id,
   };
 }
 
@@ -54,6 +55,7 @@ export async function createTask(
     columnId: createdTask.rows[0].column_id,
     description: createdTask.rows[0].description,
     id: createdTask.rows[0].id,
+    userId: createdTask.rows[0].user_id,
   };
 }
 
@@ -117,11 +119,11 @@ export async function updateColumn(
     [newName, columnId, userId],
   );
 
-  console.log(updatedColumn.rows[0]);
   return {
     name: updatedColumn.rows[0].name,
     boardId: updatedColumn.rows[0].board_id,
     id: updatedColumn.rows[0].id,
+    userId: updatedColumn.rows[0].user_id,
   };
 }
 
@@ -141,6 +143,7 @@ export async function updateTask(
     description: updatedTask.rows[0].description,
     columnId: updatedTask.rows[0].column_id,
     id: updatedTask.rows[0].id,
+    userId: updatedTask.rows[0].user_id,
   };
 }
 
@@ -182,7 +185,6 @@ export async function deleteColumn(
   columnId: number,
   userId: number,
 ): Promise<ColumnDetails & DbItem> {
-  console.log({ columnId, userId });
   const deletedColumn = await pool.query<DbColumnDetails & DbItem>(
     "DELETE FROM columns WHERE id=$1 AND user_id=$2 RETURNING *",
     [columnId, userId],
@@ -192,6 +194,7 @@ export async function deleteColumn(
     name: deletedColumn.rows[0].name,
     boardId: deletedColumn.rows[0].board_id,
     id: deletedColumn.rows[0].id,
+    userId: deletedColumn.rows[0].user_id,
   };
 }
 
@@ -209,6 +212,7 @@ export async function deleteTask(
     columnId: deletedTask.rows[0].column_id,
     description: deletedTask.rows[0].description,
     id: deletedTask.rows[0].id,
+    userId: deletedTask.rows[0].user_id,
   };
 }
 
@@ -251,8 +255,8 @@ export async function getColumns(
     [userId, boardId],
   );
 
-  return columns.rows.map(({ id, name, board_id }) => {
-    return { id, name, boardId: board_id };
+  return columns.rows.map(({ id, name, board_id, user_id }) => {
+    return { id, name, boardId: board_id, userId: user_id };
   });
 }
 
@@ -260,16 +264,13 @@ export async function getTasks(
   columnId: number,
   userId: number,
 ): Promise<(TaskDetails & DbItem)[]> {
-  console.log({ columnId, userId });
   const columns = await pool.query<DbTaskDetails & DbItem>(
     "SELECT title, id, column_id, description FROM tasks WHERE user_id=$1 AND column_id=$2",
     [userId, columnId],
   );
 
-  console.log({ rows: columns.rows });
-
-  return columns.rows.map(({ id, title, description, column_id }) => {
-    return { id, title, columnId: column_id, description };
+  return columns.rows.map(({ id, title, description, column_id, user_id }) => {
+    return { id, title, columnId: column_id, description, userId: user_id };
   });
 }
 
@@ -281,8 +282,6 @@ export async function getSubtasks(
     "SELECT title, id, is_completed, task_id FROM subtasks WHERE user_id=$1 AND task_id=$2",
     [userId, taskId],
   );
-
-  console.log({ taskId, userId, rows: tasks.rows });
 
   return tasks.rows.map(({ id, title, is_completed, task_id }) => {
     return { id, title, taskId: task_id, isCompleted: Boolean(is_completed) };
@@ -318,6 +317,7 @@ export async function getColumn(
     id: column.rows[0].id,
     name: column.rows[0].name,
     boardId: column.rows[0].board_id,
+    userId: column.rows[0].user_id,
   };
 }
 
@@ -326,7 +326,7 @@ export async function getTask(
   taskId: number,
 ): Promise<TaskDetails & DbItem> {
   const task = await pool.query<DbTaskDetails & DbItem>(
-    "SELECT title, id, column_id, description FROM tasks WHERE user_id=$1 AND id=$2",
+    "SELECT title, id, column_id, description, user_id FROM tasks WHERE user_id=$1 AND id=$2",
     [userId, taskId],
   );
 
@@ -335,6 +335,7 @@ export async function getTask(
     title: task.rows[0].title,
     columnId: task.rows[0].column_id,
     description: task.rows[0].description,
+    userId: task.rows[0].user_id,
   };
 }
 

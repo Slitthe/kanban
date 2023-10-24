@@ -10,6 +10,7 @@ import {
   deleteSubtask,
   getSubtask,
   getSubtasks,
+  getTask,
   updateSubtask,
 } from "../db";
 import { DbItem } from "../types/db";
@@ -97,6 +98,10 @@ export async function createSubtaskResolver(
   }
 
   try {
+    const parentTask = await getTask(context.user?.userId, taskId);
+    if (parentTask.userId !== context.user?.userId) {
+      throw new Error();
+    }
     return await createSubtask(title, taskId, context.user.userId, isCompleted);
   } catch {
     throw new Error("Failed to save subtask");

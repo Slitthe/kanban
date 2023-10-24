@@ -1,7 +1,14 @@
 import { GetTasksPayload, TaskDetails, UpdateTaskPayload } from "../types/task";
 import { AuthContext } from "../types/auth";
 import { GraphQLError } from "graphql/error";
-import { createTask, deleteTask, getTask, getTasks, updateTask } from "../db";
+import {
+  createTask,
+  deleteTask,
+  getColumn,
+  getTask,
+  getTasks,
+  updateTask,
+} from "../db";
 import { DbItem } from "../types/db";
 
 export async function getTasksResolver(
@@ -51,6 +58,10 @@ export async function createTaskResolver(
   }
 
   try {
+    const parentColumn = await getColumn(context.user?.userId, columnId);
+    if (parentColumn.userId !== context.user?.userId) {
+      throw new Error();
+    }
     return await createTask(title, columnId, context.user.userId, description);
   } catch {
     throw new Error("Failed to save column");
