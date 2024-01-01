@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS columns (
     board_Id INT NOT NULL,
     user_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    CONSTRAINT fk_board FOREIGN KEY(board_id) REFERENCES boards(id),
+    CONSTRAINT fk_board FOREIGN KEY(board_id) REFERENCES boards(id) ON DELETE CASCADE,
     CONSTRAINT fk_user FOREIGN KEY(users_id) REFERENCES users(id)
 );
 
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     user_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(8092),
-    CONSTRAINT fk_column FOREIGN KEY(column_id) REFERENCES columns(id),
+    CONSTRAINT fk_column FOREIGN KEY(column_id) REFERENCES columns(id) ON DELETE CASCADE,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
@@ -37,6 +37,6 @@ CREATE TABLE IF NOT EXISTS subtasks (
     title VARCHAR(255) NOT NULL,
     is_completed BOOLEAN NOT NULL DEFAULT false,
     description VARCHAR(8092),
-    CONSTRAINT fk_task FOREIGN KEY(task_id) REFERENCES tasks(id),
+    CONSTRAINT fk_task FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id)
 );

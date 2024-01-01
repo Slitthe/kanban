@@ -1,10 +1,9 @@
 export interface User {
-  username: string;
-  password: string;
+    username: string;
+    password: string;
 }
 
 export interface RegisterUserPayload {
-  username: string;
-  password: string;
-  confirmedPassword: string;
+    username: string;
+    password: string;
 }
